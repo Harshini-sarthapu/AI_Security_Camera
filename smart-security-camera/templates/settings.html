@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings | AI-Powered Smart Security Camera</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+</head>
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <header class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon">📹</div>
+            <div class="brand-text">
+                <h1>AI-Powered Smart Security Camera</h1>
+                <div class="subtext">Real-Time Intelligent Surveillance System</div>
+            </div>
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">🖥️ Dashboard</a>
+            <a href="/events" class="nav-link">📜 Event History</a>
+            <a href="/settings" class="nav-link active">⚙️ Settings</a>
+        </div>
+
+        <div class="system-status-badge">
+            <span class="status-dot"></span>
+            <span>SYSTEM STATUS: ONLINE</span>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>⚙️ Surveillance & AI Configuration Parameters</span>
+                </div>
+                <div id="save-status-msg" style="font-size: 0.85rem; font-weight: 600; color: var(--status-online); display: none;">
+                    ✓ Configuration saved successfully!
+                </div>
+            </div>
+
+            <form id="settings-form" class="form-grid">
+
+                <!-- RESTRICTED AREA SETTINGS -->
+                <div style="grid-column: 1 / -1; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-top: 6px;">
+                    <h3 style="font-size: 1.05rem; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                        <span>🚫 Restricted Area & Perimeter Security</span>
+                    </h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+                        Configure normalized rectangular boundaries (0.0 to 1.0) on the surveillance frame for automatic intrusion alarms.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; justify-content: space-between;">
+                        <span>Restricted Zone Detection</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="restricted_enabled" name="restricted_enabled" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                    <span class="form-hint">Enable or disable perimeter violation checking</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Zone Left (X1) [0.0 - 1.0]</label>
+                    <input type="number" step="0.05" min="0" max="1" id="ra_x1" name="ra_x1" class="form-control" value="0.6">
+                    <span class="form-hint">Default 0.60 (right 40% of the camera frame)</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Zone Top (Y1) [0.0 - 1.0]</label>
+                    <input type="number" step="0.05" min="0" max="1" id="ra_y1" name="ra_y1" class="form-control" value="0.2">
+                    <span class="form-hint">Default 0.20</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Zone Right (X2) [0.0 - 1.0]</label>
+                    <input type="number" step="0.05" min="0" max="1" id="ra_x2" name="ra_x2" class="form-control" value="0.95">
+                    <span class="form-hint">Default 0.95</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Zone Bottom (Y2) [0.0 - 1.0]</label>
+                    <input type="number" step="0.05" min="0" max="1" id="ra_y2" name="ra_y2" class="form-control" value="0.8">
+                    <span class="form-hint">Default 0.80</span>
+                </div>
+
+                <!-- BEHAVIOR & DETECTION PARAMETERS -->
+                <div style="grid-column: 1 / -1; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-top: 18px;">
+                    <h3 style="font-size: 1.05rem; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                        <span>🧠 AI Behavior & Temporal Thresholds</span>
+                    </h3>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Loitering Duration Threshold (seconds)</label>
+                    <input type="number" min="3" max="120" id="loitering_time" name="loitering_time" class="form-control" value="10">
+                    <span class="form-hint">Seconds a person lingers in the same area before triggering alert (Default: 10)</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Abnormal Movement Threshold (pixels/sec)</label>
+                    <input type="number" min="50" max="1000" id="movement_threshold" name="movement_threshold" class="form-control" value="200">
+                    <span class="form-hint">Pixel displacement per second to flag running/rapid sudden movement</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Unattended Object Threshold (seconds)</label>
+                    <input type="number" min="5" max="300" id="unattended_time" name="unattended_time" class="form-control" value="15">
+                    <span class="form-hint">Dwell time for stationary backpacks/bags [Demo Feature]</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">YOLOv8 Detection Confidence (0.1 - 0.9)</label>
+                    <input type="number" step="0.05" min="0.1" max="0.9" id="detection_confidence" name="detection_confidence" class="form-control" value="0.45">
+                    <span class="form-hint">Higher values reduce false positives; lower values detect fainter objects</span>
+                </div>
+
+                <!-- CAMERA SOURCE & ALERT AUDIO -->
+                <div style="grid-column: 1 / -1; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-top: 18px;">
+                    <h3 style="font-size: 1.05rem; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                        <span>🎥 Camera Hardware & Notification Rules</span>
+                    </h3>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Camera Label / Name</label>
+                    <input type="text" id="camera_name" name="camera_name" class="form-control" value="Camera 1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location Descriptor</label>
+                    <input type="text" id="camera_location" name="camera_location" class="form-control" value="Main Entrance">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Camera Index / RTSP URI</label>
+                    <input type="text" id="camera_source" name="camera_source" class="form-control" value="0">
+                    <span class="form-hint">0 = Default laptop webcam, or path to MP4 video</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alert Cooldown (seconds)</label>
+                    <input type="number" min="2" max="60" id="alert_cooldown" name="alert_cooldown" class="form-control" value="10">
+                    <span class="form-hint">Wait time between repeating alerts for the same event</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; justify-content: space-between;">
+                        <span>Browser Audio Sirens</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="alert_sound" name="alert_sound" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                    <span class="form-hint">Play acoustic buzzer on critical event detection</span>
+                </div>
+
+                <!-- ACTIONS -->
+                <div style="grid-column: 1 / -1; display: flex; gap: 14px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">💾 Save System Settings</button>
+                    <button type="button" id="btn-reset-defaults" class="btn btn-secondary" style="padding: 12px 24px;">Reset Defaults</button>
+                    <a href="/" class="btn btn-secondary" style="padding: 12px 24px;">Return to Dashboard</a>
+                </div>
+
+            </form>
+        </section>
+
+    </main>
+
+    <footer>
+        AI-Powered Smart Security Camera &bull; Configuration Management &bull; SQLite Backed
+    </footer>
+
+    <script>
+        async function loadConfig() {
+            try {
+                const res = await fetch("/api/settings");
+                if (!res.ok) return;
+                const cfg = await res.json();
+
+                document.getElementById("restricted_enabled").checked = cfg.restricted_area?.enabled ?? true;
+                document.getElementById("ra_x1").value = cfg.restricted_area?.x1 ?? 0.6;
+                document.getElementById("ra_y1").value = cfg.restricted_area?.y1 ?? 0.2;
+                document.getElementById("ra_x2").value = cfg.restricted_area?.x2 ?? 0.95;
+                document.getElementById("ra_y2").value = cfg.restricted_area?.y2 ?? 0.8;
+
+                document.getElementById("loitering_time").value = cfg.loitering_time ?? 10;
+                document.getElementById("movement_threshold").value = cfg.movement_threshold ?? 200;
+                document.getElementById("unattended_time").value = cfg.unattended_time ?? 15;
+                document.getElementById("detection_confidence").value = cfg.detection_confidence ?? 0.45;
+
+                document.getElementById("camera_name").value = cfg.camera_name ?? "Camera 1";
+                document.getElementById("camera_location").value = cfg.camera_location ?? "Main Entrance";
+                document.getElementById("camera_source").value = cfg.camera_source ?? "0";
+                document.getElementById("alert_cooldown").value = cfg.alert_cooldown ?? 10;
+                document.getElementById("alert_sound").checked = cfg.alert_sound ?? true;
+            } catch (e) {
+                console.error("Error loading config:", e);
+            }
+        }
+
+        document.getElementById("settings-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                restricted_area: {
+                    enabled: document.getElementById("restricted_enabled").checked,
+                    x1: parseFloat(document.getElementById("ra_x1").value),
+                    y1: parseFloat(document.getElementById("ra_y1").value),
+                    x2: parseFloat(document.getElementById("ra_x2").value),
+                    y2: parseFloat(document.getElementById("ra_y2").value)
+                },
+                loitering_time: parseInt(document.getElementById("loitering_time").value, 10),
+                movement_threshold: parseInt(document.getElementById("movement_threshold").value, 10),
+                unattended_time: parseInt(document.getElementById("unattended_time").value, 10),
+                detection_confidence: parseFloat(document.getElementById("detection_confidence").value),
+                camera_name: document.getElementById("camera_name").value,
+                camera_location: document.getElementById("camera_location").value,
+                camera_source: isNaN(parseInt(document.getElementById("camera_source").value)) ?
+                                document.getElementById("camera_source").value :
+                                parseInt(document.getElementById("camera_source").value, 10),
+                alert_cooldown: parseInt(document.getElementById("alert_cooldown").value, 10),
+                alert_sound: document.getElementById("alert_sound").checked
+            };
+
+            try {
+                const res = await fetch("/settings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === "ok") {
+                    const msg = document.getElementById("save-status-msg");
+                    msg.style.display = "block";
+                    setTimeout(() => { msg.style.display = "none"; }, 3500);
+                } else {
+                    alert("Error saving settings: " + (data.message || "Unknown error"));
+                }
+            } catch (err) {
+                alert("Network error: " + err.message);
+            }
+        });
+
+        document.getElementById("btn-reset-defaults").addEventListener("click", () => {
+            if (confirm("Reset all settings to project defaults?")) {
+                document.getElementById("restricted_enabled").checked = true;
+                document.getElementById("ra_x1").value = 0.6;
+                document.getElementById("ra_y1").value = 0.2;
+                document.getElementById("ra_x2").value = 0.95;
+                document.getElementById("ra_y2").value = 0.8;
+                document.getElementById("loitering_time").value = 10;
+                document.getElementById("movement_threshold").value = 200;
+                document.getElementById("unattended_time").value = 15;
+                document.getElementById("detection_confidence").value = 0.45;
+                document.getElementById("camera_name").value = "Camera 1";
+                document.getElementById("camera_location").value = "Main Entrance";
+                document.getElementById("camera_source").value = "0";
+                document.getElementById("alert_cooldown").value = 10;
+                document.getElementById("alert_sound").checked = true;
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", loadConfig);
+    </script>
+</body>
+</html>

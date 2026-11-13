@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Smart Security Camera | SOC Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+</head>
+<body>
+
+    <!-- TOP NAVIGATION / HEADER -->
+    <header class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon">📹</div>
+            <div class="brand-text">
+                <h1>AI-Powered Smart Security Camera</h1>
+                <div class="subtext">Real-Time Intelligent Surveillance System</div>
+            </div>
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link active">🖥️ Dashboard</a>
+            <a href="/events" class="nav-link">📜 Event History</a>
+            <a href="/settings" class="nav-link">⚙️ Settings</a>
+        </div>
+
+        <div class="system-status-badge">
+            <span class="status-dot"></span>
+            <span>SYSTEM STATUS: <strong id="sys-status-text">ONLINE</strong></span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- STATISTICS CARDS -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon camera">📷</div>
+                <div class="stat-info">
+                    <div class="stat-label">Camera Status</div>
+                    <div class="stat-value" id="stat-camera-status">ONLINE</div>
+                    <div class="stat-desc">Active Video Stream</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon people">👥</div>
+                <div class="stat-info">
+                    <div class="stat-label">People Detected</div>
+                    <div class="stat-value" id="stat-people-count">0</div>
+                    <div class="stat-desc">Tracked in Frame</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon objects">📦</div>
+                <div class="stat-info">
+                    <div class="stat-label">Objects Detected</div>
+                    <div class="stat-value" id="stat-object-count">0</div>
+                    <div class="stat-desc">YOLO Classifications</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon alerts">🚨</div>
+                <div class="stat-info">
+                    <div class="stat-label">Active Alerts</div>
+                    <div class="stat-value" id="stat-alert-count">0</div>
+                    <div class="stat-desc">Suspicious Events</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN MONITORING SPLIT AREA -->
+        <section class="monitoring-split">
+
+            <!-- LEFT: LIVE CAMERA FEED -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>📹 Live Surveillance Feed</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="stream-mode-badge" class="mode-badge mode-live">LIVE CAMERA</span>
+                    </div>
+                </div>
+
+                <div class="video-stage">
+                    <div class="video-hud-overlay">
+                        <div class="hud-tag">
+                            <span class="rec-dot"></span>
+                            <span>YOLOv8 LIVE INFERENCE</span>
+                        </div>
+                        <div class="hud-tag">
+                            <span>ZONE: SECTOR-1 (RESTRICTED)</span>
+                        </div>
+                    </div>
+
+                    <!-- Video stream element -->
+                    <img id="video-feed-img" src="/video-feed" alt="Surveillance Stream" class="video-element" onerror="this.style.display='none'; document.getElementById('video-fallback').style.display='flex';" onload="this.style.display='block'; document.getElementById('video-fallback').style.display='none';">
+
+                    <div id="video-fallback" class="video-placeholder" style="display: none;">
+                        <div class="video-placeholder-icon">📷</div>
+                        <h3>Camera Offline / Stream Paused</h3>
+                        <p>Click "Start Camera" or upload a prerecorded video to activate AI detection.</p>
+                    </div>
+                </div>
+
+                <!-- Camera Controls Toolbar -->
+                <div class="video-controls">
+                    <div class="btn-group">
+                        <button id="btn-start-camera" class="btn btn-success">▶ Start Camera</button>
+                        <button id="btn-stop-camera" class="btn btn-danger">⏹ Stop Camera</button>
+                    </div>
+
+                    <div class="btn-group">
+                        <input type="file" id="video-file-input" accept="video/mp4,video/avi,video/mov,video/mkv" style="display: none;">
+                        <button id="btn-upload-video" class="btn btn-secondary">📁 Upload Demo Video</button>
+                        <a href="/settings" class="btn btn-secondary">⚙️ Configure Zone</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: CURRENT ALERTS -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>🚨 Real-Time Security Alerts</span>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="sound-toggle" checked style="cursor: pointer;">
+                            <span>Audio Alert</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="alerts-container" class="alerts-container">
+                    <!-- Populated dynamically via dashboard.js -->
+                    <div class="empty-alerts">
+                        <div class="empty-alerts-icon">🛡️</div>
+                        <div style="font-weight: 600; color: var(--text-main);">No Active Alerts</div>
+                        <div style="font-size: 0.8rem; margin-top: 4px;">Surveillance sector is secure and nominal.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM: RECENT EVENTS TABLE -->
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>📋 Recent Security Events</span>
+                </div>
+                <div>
+                    <a href="/events" class="btn btn-secondary" style="font-size: 0.78rem; padding: 4px 12px;">View All History →</a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Event</th>
+                            <th>Time</th>
+                            <th>Camera</th>
+                            <th>Risk</th>
+                            <th>Status</th>
+                            <th>Snapshot</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-events-body">
+                        <!-- Populated dynamically via dashboard.js -->
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 24px;">
+                                Loading security logs...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SNAPSHOT VIEW MODAL -->
+    <div id="snapshot-modal" class="modal-backdrop" onclick="if(event.target === this) closeSnapshotModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modal-title" class="modal-title">Security Event Snapshot</h3>
+                <button class="modal-close" onclick="closeSnapshotModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modal-snapshot-img" src="" alt="Snapshot Image" class="modal-img">
+                <div id="modal-meta" class="modal-info"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        AI-Powered Smart Security Camera &bull; College CSE Project Demonstration &bull; YOLOv8 + OpenCV + Flask + SQLite
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

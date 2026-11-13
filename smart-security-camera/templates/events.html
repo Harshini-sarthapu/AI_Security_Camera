@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event History | AI-Powered Smart Security Camera</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+</head>
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <header class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon">📹</div>
+            <div class="brand-text">
+                <h1>AI-Powered Smart Security Camera</h1>
+                <div class="subtext">Real-Time Intelligent Surveillance System</div>
+            </div>
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">🖥️ Dashboard</a>
+            <a href="/events" class="nav-link active">📜 Event History</a>
+            <a href="/settings" class="nav-link">⚙️ Settings</a>
+        </div>
+
+        <div class="system-status-badge">
+            <span class="status-dot"></span>
+            <span>SYSTEM STATUS: ONLINE</span>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- FILTER BAR -->
+        <section class="panel-card" style="margin-bottom: 24px;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>🔍 Filter Security Events</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    SQLite Database Query Engine
+                </div>
+            </div>
+
+            <form id="filter-form" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto; gap: 16px; align-items: flex-end;">
+                <div class="form-group">
+                    <label class="form-label" for="filter-type">Event Type</label>
+                    <select id="filter-type" class="form-control">
+                        <option value="all">All Event Types</option>
+                        <option value="Unauthorized Entry">Unauthorized Entry</option>
+                        <option value="Loitering">Loitering</option>
+                        <option value="Abnormal Movement">Abnormal Movement</option>
+                        <option value="Unattended Object">Unattended Object</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="filter-risk">Risk Level</label>
+                    <select id="filter-risk" class="form-control">
+                        <option value="all">All Risk Levels</option>
+                        <option value="HIGH">HIGH (Critical)</option>
+                        <option value="MEDIUM">MEDIUM (Warning)</option>
+                        <option value="LOW">LOW (Info)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="filter-date">Date</label>
+                    <input type="date" id="filter-date" class="form-control">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="btn-apply-filter" class="btn btn-primary">Filter</button>
+                    <button type="button" id="btn-reset-filter" class="btn btn-secondary">Reset</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- EVENTS TABLE -->
+        <section class="panel-card">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>📜 Stored Security Logs (<span id="event-count">0</span> records)</span>
+                </div>
+                <div>
+                    <button id="btn-refresh-events" class="btn btn-secondary" style="font-size: 0.78rem;">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Event Type</th>
+                            <th>Timestamp</th>
+                            <th>Camera / Location</th>
+                            <th>Risk Level</th>
+                            <th>Description</th>
+                            <th>Snapshot</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-table-body">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                                Loading events...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SNAPSHOT VIEW MODAL -->
+    <div id="snapshot-modal" class="modal-backdrop" onclick="if(event.target === this) closeSnapshotModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modal-title" class="modal-title">Security Event Snapshot</h3>
+                <button class="modal-close" onclick="closeSnapshotModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modal-snapshot-img" src="" alt="Snapshot Image" class="modal-img">
+                <div id="modal-meta" class="modal-info"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        AI-Powered Smart Security Camera &bull; SQLite Event Log Archive &bull; YOLOv8
+    </footer>
+
+    <script>
+        async function loadEvents() {
+            const eventType = document.getElementById("filter-type").value;
+            const riskLevel = document.getElementById("filter-risk").value;
+            const date = document.getElementById("filter-date").value;
+
+            let url = `/api/events?limit=100`;
+            if (eventType && eventType !== "all") url += `&event_type=${encodeURIComponent(eventType)}`;
+            if (riskLevel && riskLevel !== "all") url += `&risk_level=${encodeURIComponent(riskLevel)}`;
+            if (date) url += `&date=${encodeURIComponent(date)}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                document.getElementById("event-count").textContent = data.length;
+
+                const tbody = document.getElementById("events-table-body");
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 40px;">
+                                No events found matching the criteria.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(e => `
+                    <tr>
+                        <td class="mono-cell">#${e.id}</td>
+                        <td style="font-weight: 600; color: #fff;">${e.event_type}</td>
+                        <td class="mono-cell">${e.timestamp}</td>
+                        <td>${e.camera || 'Camera 1'} &bull; <span style="color: var(--text-muted);">${e.location || 'Main'}</span></td>
+                        <td><span class="risk-badge ${e.risk_level}">${e.risk_level}</span></td>
+                        <td style="max-width: 320px; font-size: 0.82rem; color: #c0cde3;">${e.description}</td>
+                        <td>
+                            ${e.image_path ? `
+                                <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;"
+                                    onclick="openSnapshotModal('/static/${e.image_path}', '${e.event_type}', '${e.risk_level}', '${e.timestamp}', '${(e.description || '').replace(/'/g, "\\'")}')">
+                                    👁 View Snapshot
+                                </button>
+                            ` : `<span style="color: var(--text-dim);">-</span>`}
+                        </td>
+                    </tr>
+                `).join("");
+            } catch (err) {
+                console.error("Error loading events:", err);
+            }
+        }
+
+        function openSnapshotModal(imgSrc, eventType, riskLevel, timestamp, desc) {
+            const modal = document.getElementById("snapshot-modal");
+            document.getElementById("modal-snapshot-img").src = imgSrc;
+            document.getElementById("modal-title").textContent = `${eventType} Snapshot`;
+            document.getElementById("modal-meta").innerHTML = `
+                <div><strong>Risk:</strong> <span class="risk-badge ${riskLevel}">${riskLevel}</span></div>
+                <div><strong>Time:</strong> ${timestamp}</div>
+                <div><strong>Details:</strong> ${desc}</div>
+            `;
+            modal.classList.add("active");
+        }
+
+        function closeSnapshotModal() {
+            document.getElementById("snapshot-modal").classList.remove("active");
+        }
+
+        document.getElementById("btn-apply-filter").addEventListener("click", loadEvents);
+        document.getElementById("btn-reset-filter").addEventListener("click", () => {
+            document.getElementById("filter-type").value = "all";
+            document.getElementById("filter-risk").value = "all";
+            document.getElementById("filter-date").value = "";
+            loadEvents();
+        });
+        document.getElementById("btn-refresh-events").addEventListener("click", loadEvents);
+
+        document.addEventListener("DOMContentLoaded", loadEvents);
+    </script>
+</body>
+</html>
